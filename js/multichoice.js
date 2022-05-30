@@ -92,6 +92,7 @@ H5P.MultiChoice = function (options, contentId, contentData) {
     userAnswers: [],
     UI: {
       checkAnswerButton: 'Check',
+      submitAnswerButton: 'Submit',
       showSolutionButton: 'Show solution',
       tryAgainButton: 'Try again',
       scoreBarLabel: 'You got :num out of :total points',
@@ -188,7 +189,7 @@ H5P.MultiChoice = function (options, contentId, contentData) {
     $feedbackDialog = $('' +
     '<div class="h5p-feedback-dialog">' +
       '<div class="h5p-feedback-inner">' +
-        '<div class="h5p-feedback-text" aria-hidden="true">' + feedback + '</div>' +
+        '<div class="h5p-feedback-text" tabindex="0">' + feedback + '</div>' +
       '</div>' +
     '</div>');
 
@@ -337,7 +338,7 @@ H5P.MultiChoice = function (options, contentId, contentData) {
       var num = parseInt($ans.data('id'));
       if (params.behaviour.singleAnswer) {
         // Store answer
-        params.userAnswers[0] = num;
+        params.userAnswers = [num];
 
         // Calculate score
         score = (params.answers[num].correct ? 1 : 0);
@@ -350,6 +351,10 @@ H5P.MultiChoice = function (options, contentId, contentData) {
       }
       else {
         if ($ans.attr('aria-checked') === 'true') {
+          const pos = params.userAnswers.indexOf(num);
+          if (pos !== -1) {
+            params.userAnswers.splice(pos, 1);
+          }
 
           // Do not allow un-checking when retry disabled and auto check
           if (params.behaviour.autoCheck && !params.behaviour.enableRetry) {
@@ -360,6 +365,7 @@ H5P.MultiChoice = function (options, contentId, contentData) {
           $ans.removeClass('h5p-selected').attr('aria-checked', 'false');
         }
         else {
+          params.userAnswers.push(num);
           $ans.addClass('h5p-selected').attr('aria-checked', 'true');
         }
 
@@ -688,21 +694,17 @@ H5P.MultiChoice = function (options, contentId, contentData) {
             l10n: params.confirmCheck,
             instance: self,
             $parentElement: $container
-          }
+          },
+          contentData: self.contentData,
+          textIfSubmitting: params.UI.submitAnswerButton,
         }
       );
     }
 
     // Try Again button
     self.addButton('try-again', params.UI.tryAgainButton, function () {
-      self.showButton('check-answer');
-      self.hideButton('try-again');
-      self.hideButton('show-solution');
-      self.hideSolutions();
-      removeSelections();
-      enableInput();
-      $myDom.find('.h5p-feedback-available').remove();
-      self.answered = false;
+      self.resetTask();
+
       if (params.behaviour.randomAnswers) {
         // reshuffle answers
        var oldIdMap = idMap;
@@ -738,27 +740,6 @@ H5P.MultiChoice = function (options, contentId, contentData) {
   var insertFeedback = function ($e, feedback) {
     // Add visuals
     addFeedback($e, feedback);
-
-    // Add button for readspeakers
-    var $wrap = $('<div/>', {
-      'class': 'h5p-hidden-read h5p-feedback-available',
-      'aria-label': params.UI.feedbackAvailable + '.'
-    });
-    $('<div/>', {
-      'role': 'button',
-      'tabindex': 0,
-      'aria-label': params.UI.readFeedback + '.',
-      appendTo: $wrap,
-      on: {
-        keydown: function (e) {
-          if (e.which === 32) { // Space
-            self.read(feedback);
-            return false;
-          }
-        }
-      }
-    });
-    $wrap.appendTo($e);
   };
 
   /**
@@ -868,22 +849,16 @@ H5P.MultiChoice = function (options, contentId, contentData) {
 
   var calcScore = function () {
     score = 0;
-    params.userAnswers = [];
-    $('.h5p-answer', $myDom).each(function (idx, el) {
-      var $el = $(el);
-      if ($el.attr('aria-checked') === 'true') {
-        var choice = params.answers[idx];
-        var weight = (choice.weight !== undefined ? choice.weight : 1);
-        if (choice.correct) {
-          score += weight;
-        }
-        else {
-          score -= weight;
-        }
-        var num = parseInt($(el).data('id'));
-        params.userAnswers.push(num);
+    for (const answer of params.userAnswers) {
+      const choice = params.answers[answer];
+      const weight = (choice.weight !== undefined ? choice.weight : 1);
+      if (choice.correct) {
+        score += weight;
       }
-    });
+      else {
+        score -= weight;
+      }
+    }
     if (score < 0) {
       score = 0;
     }
@@ -1045,6 +1020,7 @@ H5P.MultiChoice = function (options, contentId, contentData) {
           }
         }
       }
+      calcScore();
     }
   }
 
