@@ -5,7 +5,7 @@
       "fields": [
         {
           "label": "Typ",
-          "description": "Volitelná média k zobrazení nad otázkou."
+          "description": "Volitelná média zobrazená nad otázkou."
         },
         {
           "label": "Zakázat zvětšení obrazu"
@@ -66,8 +66,8 @@
               },
               {},
               {
-                "label": "Zpětná vazba pro definovaný rozsah skóre",
-                "placeholder": "Vyplňte ve zpětné vazbě"
+                "label": "Feedback for defined score range",
+                "placeholder": "Fill in the feedback"
               }
             ]
           }
@@ -80,6 +80,10 @@
         {
           "label": "Popis tlačítka kontroly",
           "default": "Zkontroluj"
+        },
+        {
+          "label": "Submit answer button label",
+          "default": "Submit"
         },
         {
           "label": "Popis tlačítka zobraz řešení",

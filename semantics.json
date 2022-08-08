@@ -12,7 +12,7 @@
         "importance": "medium",
         "options": [
           "H5P.Image 1.1",
-          "H5P.Video 1.5",
+          "H5P.Video 1.6",
           "H5P.Audio 1.5"
         ],
         "optional": true,
@@ -223,6 +223,13 @@
         "label": "Check answer button label",
         "importance": "low",
         "default": "Check"
+      },
+      {
+        "name": "submitAnswerButton",
+        "type": "text",
+        "label": "Submit answer button label",
+        "importance": "low",
+        "default": "Submit"
       },
       {
         "name": "showSolutionButton",
